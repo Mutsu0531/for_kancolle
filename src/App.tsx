@@ -7,7 +7,7 @@ function App() {
   });
 
   const [previousData, setPreviousData] = useState<any>({});
-  //const [history, setHistory] = useState<any[]>([]); // 履歴用State
+  const [history, setHistory] = useState<any[]>([]); // 履歴用State
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({}); // エラーメッセージを管理する
 
   // 表示用の名前を管理するリスト
@@ -20,29 +20,21 @@ function App() {
     improvement_material: '改修資材'
   };
 
-  useEffect(() => {
-    const fetchLastData = async () => {
+  //useEffect(() => {
+  const fetchData = async () => {
       const { data, error } = await supabase
         .from('resources')
         .select('*')
         .order('created_at', { ascending: false}) // 最新の日付を参照
-        .limit(1);
+        .limit(10);
     
       if(!error && data && data.length > 0) {
+        setHistory(data);
         setPreviousData(data[0]);
-        /*const last = data[0];
-        setFormData({
-          fuel:                 String(last.fuel),
-          ammo:                 String(last.ammo),
-          steel:                String(last.steel),
-          bauxite:              String(last.bauxite),
-          dev_material:         String(last.dev_material),
-          improvement_material: String(last.improvement_material),
-          
-        });*/
       }
-    };
-    fetchLastData();
+  };
+  useEffect(() => {
+    fetchData();
   }, []);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,11 +72,28 @@ function App() {
       alert('保存に失敗しました: ' + error.message);
     } else {
       alert('保存成功しました！');
+      fetchData();
+      //　ここにフォームを空にする処理追加
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ padding: '20px' }}>
+    <div style={{ display: 'flex', gap: '40px', padding: '20px' }}>
+    
+    {/* 左側：履歴表示エリア */}
+    <div style={{ width: '400px' }}>
+      <h2>履歴（直近10回）</h2>
+      {history.map((item) => (
+        <div key={item.id} style={{ borderBottom: '1px solid #ccc', marginBottom: '10px' }}>
+          <p style={{ margin: '0', fontWeight: 'bold' }}>{item.date}</p>
+          <p style={{ margin: '0', fontSize: '0.9em' }}>
+            燃:{item.fuel} / 弾:{item.ammo} / 鋼:{item.steel} / ボ:{item.bauxite} / 開:{item.dev_material} /改:{item.improvement_material}
+          </p>
+        </div>
+      ))}
+    </div>
+
+    <form onSubmit={handleSubmit} style={{ width: '300px'}}> 
       <h2>資源記録</h2>
       {/* 2. Object.entriesを使って、リストから名前を取り出して表示 */}
       {Object.entries(resourceLabels).map(([key, label]) => (
@@ -106,6 +115,8 @@ function App() {
       ))}
       <button type="submit">保存する</button>
     </form>
+
+    </div>
   );
 }
 
