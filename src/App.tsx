@@ -2,25 +2,50 @@ import { useState } from 'react';
 import { supabase } from './lib/supabaseClient';
 
 function App() {
-  // 入力フォームの値を管理するState（初期値は0）
   const [formData, setFormData] = useState({
-    fuel: 0, ammo: 0, steel: 0, bauxite: 0, dev_material: 0, improvement_material: 0
+    fuel: '', ammo: '', steel: '', bauxite: '', dev_material: '', improvement_material: ''
   });
 
-  // 入力があったら値を更新する関数
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: Number(value) });
+  // 追加：エラーメッセージを管理するState
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
+
+  // 1. 表示用の名前を定義するリスト
+  const resourceLabels: { [key: string]: string } = {
+    fuel: '燃料',
+    ammo: '弾薬',
+    steel: '鋼材',
+    bauxite: 'ボーキサイト',
+    dev_material: '開発資材',
+    improvement_material: '改修資材'
   };
 
-  // 保存ボタンを押した時の処理
+  /*const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: Number(value) });
+  };*/
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { name, value } = e.target;
+  const numValue = Number(value);
+  
+  // チェック対象の資源リスト
+  const cappedResources = ['fuel', 'ammo', 'steel', 'bauxite'];
+  const LIMIT = 350000;
+
+  // 上限チェック
+  if (cappedResources.includes(name) && numValue > LIMIT) {
+    setErrors({ ...errors, [name]: '上限を超えています' });
+  } else {
+    // 正常ならエラーを消す
+    setErrors({ ...errors, [name]: null });
+  }
+
+  setFormData({ ...formData, [name]: numValue });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // 現在の日付を取得
     const today = new Date().toISOString().split('T')[0];
 
-    // Supabaseに送信
     const { error } = await supabase.from('resources').insert([
       { date: today, ...formData }
     ]);
@@ -35,15 +60,21 @@ function App() {
   return (
     <form onSubmit={handleSubmit} style={{ padding: '20px' }}>
       <h2>資源記録</h2>
-      {Object.keys(formData).map((key) => (
+      {/* 2. Object.entriesを使って、リストから名前を取り出して表示 */}
+      {Object.entries(resourceLabels).map(([key, label]) => (
         <div key={key} style={{ marginBottom: '10px' }}>
-          <label style={{ display: 'block', textTransform: 'capitalize' }}>{key}</label>
+          <label style={{ display: 'block' }}>{label}</label>
           <input
             type="number"
             name={key}
             value={formData[key as keyof typeof formData]}
             onChange={handleChange}
+            placeholder="0"
           />
+          {/* 追加：エラーがある場合メッセージを表示 */}
+          {errors[key] && (
+            <p style={{ color: 'red', fontSize: '12px', margin: '0' }}>{errors[key]}</p>
+          )}
         </div>
       ))}
       <button type="submit">保存する</button>
@@ -52,126 +83,3 @@ function App() {
 }
 
 export default App;
-
-/*import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
-
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
-}
-
-export default App*/
