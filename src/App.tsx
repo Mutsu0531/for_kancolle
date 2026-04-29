@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabaseClient';
 
 function App() {
@@ -6,10 +6,11 @@ function App() {
     fuel: '', ammo: '', steel: '', bauxite: '', dev_material: '', improvement_material: ''
   });
 
-  // 追加：エラーメッセージを管理するState
-  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
+  const [previousData, setPreviousData] = useState<any>({});
+  //const [history, setHistory] = useState<any[]>([]); // 履歴用State
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({}); // エラーメッセージを管理する
 
-  // 1. 表示用の名前を定義するリスト
+  // 表示用の名前を管理するリスト
   const resourceLabels: { [key: string]: string } = {
     fuel: '燃料',
     ammo: '弾薬',
@@ -19,10 +20,31 @@ function App() {
     improvement_material: '改修資材'
   };
 
-  /*const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: Number(value) });
-  };*/
+  useEffect(() => {
+    const fetchLastData = async () => {
+      const { data, error } = await supabase
+        .from('resources')
+        .select('*')
+        .order('created_at', { ascending: false}) // 最新の日付を参照
+        .limit(1);
+    
+      if(!error && data && data.length > 0) {
+        setPreviousData(data[0]);
+        /*const last = data[0];
+        setFormData({
+          fuel:                 String(last.fuel),
+          ammo:                 String(last.ammo),
+          steel:                String(last.steel),
+          bauxite:              String(last.bauxite),
+          dev_material:         String(last.dev_material),
+          improvement_material: String(last.improvement_material),
+          
+        });*/
+      }
+    };
+    fetchLastData();
+  }, []);
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const { name, value } = e.target;
   const numValue = Number(value);
@@ -35,19 +57,23 @@ function App() {
   if (cappedResources.includes(name) && numValue > LIMIT) {
     setErrors({ ...errors, [name]: '上限を超えています' });
   } else {
-    // 正常ならエラーを消す
     setErrors({ ...errors, [name]: null });
   }
 
-  setFormData({ ...formData, [name]: numValue });
+  setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const today = new Date().toISOString().split('T')[0];
+    
+    const sanitizedData = Object.entries(formData).reduce((acc, [key, value]) => {
+      acc[key] = value === '' ? (previousData[key] ?? 0) : Number(value);
+      return acc;
+      },{} as any);
 
     const { error } = await supabase.from('resources').insert([
-      { date: today, ...formData }
+      { date: today, ...sanitizedData }
     ]);
 
     if (error) {
@@ -69,7 +95,8 @@ function App() {
             name={key}
             value={formData[key as keyof typeof formData]}
             onChange={handleChange}
-            placeholder="0"
+            // 直近の値を表示する
+            placeholder={`前回: ${previousData[key] ?? 0}`}
           />
           {/* 追加：エラーがある場合メッセージを表示 */}
           {errors[key] && (
