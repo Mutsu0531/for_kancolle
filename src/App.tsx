@@ -37,6 +37,21 @@ function App() {
     fetchData();
   }, []);
   
+  // 削除関数
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("本当に削除しますか？");
+
+    if(confirmDelete) {
+      const { error } = await supabase
+        .from('resources')
+        .delete()
+        .eq('id', id);
+      
+    if(error) {alert('削除に失敗しました: ' + error.message);}
+    else {alert('削除しました'); fetchData();}
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const { name, value } = e.target;
   const numValue = Number(value);
@@ -82,20 +97,28 @@ function App() {
     
     {/* 左側：履歴表示エリア */}
     <div style={{ width: '400px' }}>
-      <h2>履歴（直近10回）</h2>
+      <h2>履歴（直近10回）</h2> 
       {history.map((item) => (
         <div key={item.id} style={{ borderBottom: '1px solid #ccc', marginBottom: '10px' }}>
           <p style={{ margin: '0', fontWeight: 'bold' }}>{item.date}</p>
           <p style={{ margin: '0', fontSize: '0.9em' }}>
             燃:{item.fuel} / 弾:{item.ammo} / 鋼:{item.steel} / ボ:{item.bauxite} / 開:{item.dev_material} /改:{item.improvement_material}
           </p>
+        
+        {/* 削除ボタン */}
+        <button
+          onClick={() => handleDelete(item.id)}
+          style={{backgroundColor: '#f25e5e', color: 'white', border: 'none', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer' }}
+        >
+          削除
+        </button>
         </div>
       ))}
     </div>
 
     <form onSubmit={handleSubmit} style={{ width: '300px'}}> 
       <h2>資源記録</h2>
-      {/* 2. Object.entriesを使って、リストから名前を取り出して表示 */}
+      {/* Object.entriesを使ってリストから名前を取り出して表示 */}
       {Object.entries(resourceLabels).map(([key, label]) => (
         <div key={key} style={{ marginBottom: '10px' }}>
           <label style={{ display: 'block' }}>{label}</label>
