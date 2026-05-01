@@ -134,7 +134,7 @@ const handleBulkDelete = async () => {
           <div key={item.id}
             style={{ 
                     borderBottom: '1px solid #ccc',
-                    marginBottom: '10px',
+                    marginBottom: '5px',
                     paddingBottom: '10px',
                     display: 'flex',
                     alignItems: 'center', // 垂直方向を中央に
@@ -158,7 +158,7 @@ const handleBulkDelete = async () => {
         </div>
     ))}
 
-    {/* 一括削除ボタン：履歴リストのすぐ下に配置 */}
+    {/* 一括削除ボタン(履歴リストのすぐ下に配置) */}
     {history.length > 0 && (
       <button
         onClick={handleBulkDelete}
@@ -178,7 +178,8 @@ const handleBulkDelete = async () => {
       </button>
     )}
     </div>
-    <form onSubmit={handleSubmit} style={{ width: '300px'}}> 
+
+    <form onSubmit={handleSubmit} style={{ width: '350px'}}> 
       <h2>資源記録</h2>
       {/* Object.entriesを使ってリストから名前を取り出して表示 */}
       {Object.entries(resourceLabels).map(([key, label]) => (
@@ -192,7 +193,7 @@ const handleBulkDelete = async () => {
             // 直近の値を表示する
             placeholder={`前回: ${previousData[key] ?? 0}`}
           />
-          {/* 追加：エラーがある場合メッセージを表示 */}
+          {/* エラーがある場合メッセージを表示 */}
           {errors[key] && (
             <p style={{ color: 'red', fontSize: '12px', margin: '0' }}>{errors[key]}</p>
           )}
