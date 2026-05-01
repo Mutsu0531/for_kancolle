@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabaseClient';
 
+const getGameDay = () => {
+  const now = new Date();
+  // 現在時刻から5時間を引く
+  const offsetDate = new Date(now.getTime() - (5 * 60 * 60 * 1000));
+  // その結果の yyyy-mm-dd を返す
+  return offsetDate.toISOString().split('T')[0];
+};
+
 function App() {
   const [formData, setFormData] = useState({
     fuel: '', ammo: '', steel: '', bauxite: '', dev_material: '', improvement_material: ''
@@ -105,15 +113,24 @@ const handleBulkDelete = async () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const today = new Date().toISOString().split('T')[0];
+
+    // 5:00区切りの日付を取得
+    const gameDay = getGameDay();
     
     const sanitizedData = Object.entries(formData).reduce((acc, [key, value]) => {
       acc[key] = value === '' ? (previousData[key] ?? 0) : Number(value);
       return acc;
       },{} as any);
 
-    const { error } = await supabase.from('resources').insert([
+    /*const { error } = await supabase.from('resources').insert([
       { date: today, ...sanitizedData }
-    ]);
+    ]);*/
+    // insert を upsert に変更
+    // onConflict: 'date' を指定することで、同じ日付なら上書きする
+    const { error } = await supabase.from('resources').upsert(
+      [{ date: gameDay, ...sanitizedData }],
+      { onConflict: 'date' } 
+    );
 
     if (error) {
       alert('保存に失敗しました: ' + error.message);
