@@ -7,7 +7,8 @@ function App() {
   });
 
   const [previousData, setPreviousData] = useState<any>({});
-  const [history, setHistory] = useState<any[]>([]); // 履歴用State
+  const [history, setHistory] = useState<any[]>([]); // 履歴用
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({}); // エラーメッセージを管理する
 
   // 表示用の名前を管理するリスト
@@ -38,7 +39,38 @@ function App() {
   }, []);
   
   // 削除関数
-  const handleDelete = async (id: string) => {
+  // チェックボックスのON/OFFを切り替える関数
+const toggleSelect = (id: string) => {
+  setSelectedIds(prev => 
+    prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+  );
+};
+
+// 選択された項目を一括削除する関数
+const handleBulkDelete = async () => {
+  if (selectedIds.length === 0) {
+    alert("削除する項目を選択してください");
+    return;
+  }
+
+  const confirmDelete = window.confirm(`選択された ${selectedIds.length} 件のデータを本当に削除しますか？`);
+
+  if (confirmDelete) {
+    const { error } = await supabase
+      .from('resources')
+      .delete()
+      .in('id', selectedIds); // 選択されたIDリストに含まれるものを一括削除
+
+    if (error) {
+      alert('削除に失敗しました: ' + error.message);
+    } else {
+      alert('削除しました');
+      setSelectedIds([]); // 選択状態をリセット
+      fetchData();        // 履歴を更新
+    }
+  }
+};
+  /*const handleDelete = async (id: string) => {
     const confirmDelete = window.confirm("本当に削除しますか？");
 
     if(confirmDelete) {
@@ -50,7 +82,7 @@ function App() {
     if(error) {alert('削除に失敗しました: ' + error.message);}
     else {alert('削除しました'); fetchData();}
     }
-  };
+  };*/
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const { name, value } = e.target;
@@ -98,24 +130,54 @@ function App() {
     {/* 左側：履歴表示エリア */}
     <div style={{ width: '400px' }}>
       <h2>履歴（直近10回）</h2> 
-      {history.map((item) => (
-        <div key={item.id} style={{ borderBottom: '1px solid #ccc', marginBottom: '10px' }}>
-          <p style={{ margin: '0', fontWeight: 'bold' }}>{item.date}</p>
-          <p style={{ margin: '0', fontSize: '0.9em' }}>
-            燃:{item.fuel} / 弾:{item.ammo} / 鋼:{item.steel} / ボ:{item.bauxite} / 開:{item.dev_material} /改:{item.improvement_material}
-          </p>
+        {history.map((item) => (
+          <div key={item.id}
+            style={{ 
+                    borderBottom: '1px solid #ccc',
+                    marginBottom: '10px',
+                    paddingBottom: '10px',
+                    display: 'flex',
+                    alignItems: 'center', // 垂直方向を中央に
+                    gap: '10px'           // チェックボックスとテキストの隙間
+                  }}
+            >
+      {/* 選択用チェックボックス */}
+        <input 
+          type="checkbox" 
+          checked={selectedIds.includes(item.id)}
+          onChange={() => toggleSelect(item.id)}
+          style={{ cursor: 'pointer', width: '20px', height: '20px' }}
+        />
         
-        {/* 削除ボタン */}
-        <button
-          onClick={() => handleDelete(item.id)}
-          style={{backgroundColor: '#f25e5e', color: 'white', border: 'none', borderRadius: '4px', padding: '5px 10px', cursor: 'pointer' }}
-        >
-          削除
-        </button>
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: '0', fontWeight: 'bold' }}>{item.date}</p>
+            <p style={{ margin: '0', fontSize: '0.9em' }}>
+              燃:{item.fuel} / 弾:{item.ammo} / 鋼:{item.steel} / ボ:{item.bauxite} / 開:{item.dev_material} / 改:{item.improvement_material}
+            </p>
+          </div>
         </div>
-      ))}
-    </div>
+    ))}
 
+    {/* 一括削除ボタン：履歴リストのすぐ下に配置 */}
+    {history.length > 0 && (
+      <button
+        onClick={handleBulkDelete}
+        style={{
+                marginTop: '10px',
+                backgroundColor: selectedIds.length > 0 ? '#f07f7f' : '#ccc', // 選択中のみ赤くする
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '10px 20px',
+                cursor: selectedIds.length > 0 ? 'pointer' : 'not-allowed',
+                width: '100%'
+              }}
+      disabled={selectedIds.length === 0}
+      >
+      選択した項目を削除する ({selectedIds.length}件)
+      </button>
+    )}
+    </div>
     <form onSubmit={handleSubmit} style={{ width: '300px'}}> 
       <h2>資源記録</h2>
       {/* Object.entriesを使ってリストから名前を取り出して表示 */}
