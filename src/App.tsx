@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabaseClient';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const getGameDay = () => {
   const now = new Date();
@@ -18,7 +19,7 @@ function App() {
   const [history, setHistory] = useState<any[]>([]); // 履歴用
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({}); // エラーメッセージを管理する
-
+  
   // 表示用の名前を管理するリスト
   const resourceLabels: { [key: string]: string } = {
     fuel: '燃料',
@@ -44,8 +45,20 @@ function App() {
   };
   useEffect(() => {
     fetchData();
+    fetchAllChartData(); // 初回読み込み用
   }, []);
   
+  const fetchAllChartData = async () => {
+  const { data, error } = await supabase
+    .from('resources')
+    .select('*')
+    .order('date', { ascending: true }); // グラフは古い順なので昇順
+
+    if (!error && data) {
+      setAllChartData(data);
+    }
+  };
+
   // 削除関数
   // チェックボックスのON/OFFを切り替える関数
 const toggleSelect = (id: string) => {
@@ -111,12 +124,10 @@ const handleBulkDelete = async () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); 
     const today = new Date().toISOString().split('T')[0];
-
     // 5:00区切りの日付を取得
     const gameDay = getGameDay();
-    
     const sanitizedData = Object.entries(formData).reduce((acc, [key, value]) => {
       acc[key] = value === '' ? (previousData[key] ?? 0) : Number(value);
       return acc;
@@ -137,9 +148,53 @@ const handleBulkDelete = async () => {
     } else {
       alert('保存成功しました！');
       fetchData();
-      //　ここにフォームを空にする処理追加
+      fetchAllChartData();
+      //　ここにフォームを空にする処理
+      setFormData({
+        fuel: '', ammo: '', steel: '', bauxite: '', 
+        dev_material: '', improvement_material: ''
+      });
     }
   };
+
+  // グラフ切り替え用
+  const [chartType, setChartType] = useState<'A' | 'B'>('A');
+  // AとBそれぞれの上限値管理
+  const [maxA, setMaxA] = useState(350000);
+  const [maxB, setMaxB] = useState(3000);
+
+  // グラフ用のデータを整形（日付順に）
+  const chartData = [...history].reverse(); 
+
+  // Aグループの設定
+  const configA = [
+    { key: 'fuel', label: '燃料', color: '#31a231' },
+    { key: 'ammo', label: '弾薬', color: '#edad0b' },
+    { key: 'steel', label: '鋼材', color: '#999' },
+    { key: 'bauxite', label: 'ボーキ', color: '#e67e22' },
+  ];
+
+  // Bグループの設定
+  const configB = [
+    { key: 'dev_material', label: '開発資材', color: '#2ecc71' },
+    { key: 'improvement_material', label: '改修資材', color: '#9b59b6' },
+  ];
+
+  const currentConfig = chartType === 'A' ? configA : configB;
+  const currentMax = chartType === 'A' ? maxA : maxB;
+  // グラフ用の全データ
+  const [allChartData, setAllChartData] = useState<any[]>([]);
+
+  // 表示範囲（初期値：1ヶ月前〜今日）
+  const [startDate, setStartDate] = useState(
+    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  );
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // 選択された期間内のデータのみを抽出(return直前に配置)
+  const filteredData = allChartData.filter(item => {
+    return item.date >= startDate && item.date <= endDate;
+  });
 
   return (
     <div style={{ display: 'flex', gap: '40px', padding: '20px' }}>
@@ -219,7 +274,72 @@ const handleBulkDelete = async () => {
       <button type="submit">保存する</button>
     </form>
 
+    <div style={{ marginTop: '40px', width: '100%', minHeight: '500px', backgroundColor: '#fff', padding: '20px', borderRadius: '8px' }}>
+    <h2>資源推移グラフ</h2>
+
+    {/* グラフ切り替えボタン */}
+    <div style={{ marginBottom: '20px' }}>
+      <button onClick={() => setChartType('A')} style={{ fontWeight: chartType === 'A' ? 'bold' : 'normal' }}>主要4資源 (A)</button>
+      <button onClick={() => setChartType('B')} style={{ fontWeight: chartType === 'B' ? 'bold' : 'normal', marginLeft: '10px' }}>資材 (B)</button>
     </div>
+
+    {/* 上限値の調整UI */}
+    <div style={{ marginBottom: '20px' }}>
+      <label>縦軸上限: </label>
+      <select 
+        value={currentMax} 
+        onChange={(e) => chartType === 'A' ? setMaxA(Number(e.target.value)) : setMaxB(Number(e.target.value))}
+      >
+        {chartType === 'A' 
+          ? [50000, 100000, 150000, 200000, 250000, 300000, 350000].map(v => <option key={v} value={v}>{v.toLocaleString()}</option>)
+          : Array.from({length: 30}, (_, i) => (i + 1) * 100).map(v => <option key={v} value={v}>{v.toLocaleString()}</option>)
+        }
+      </select>
+    </div>
+    {/* 表示期間切り替えのUI */}
+    <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+      <label>表示期間:</label>
+      <input 
+        type="date" 
+        value={startDate} 
+        onChange={(e) => setStartDate(e.target.value)} 
+        style={{ padding: '5px' }}
+      />
+      <span>〜</span>
+      <input 
+        type="date" 
+        value={endDate} 
+        onChange={(e) => setEndDate(e.target.value)} 
+        style={{ padding: '5px' }}
+      />
+    </div>
+
+    {/* グラフ本体 */}
+    <div style={{ width: '100%', height: 400 }}>
+      <ResponsiveContainer>
+        <LineChart data={filteredData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="date" />
+          <YAxis domain={[0, currentMax]} />
+          <Tooltip />
+          <Legend />
+          {currentConfig.map(c => (
+            <Line
+              key={c.key}
+              type="monotone"
+              dataKey={c.key}
+              name={c.label}
+              stroke={c.color}
+              activeDot={{ r: 8 }}
+              connectNulls // データが途切れても線を繋ぐ
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+
+  </div>
   );
 }
 
