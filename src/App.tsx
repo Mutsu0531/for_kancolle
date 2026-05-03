@@ -86,8 +86,9 @@ const handleBulkDelete = async () => {
       alert('削除に失敗しました: ' + error.message);
     } else {
       alert('削除しました');
-      setSelectedIds([]); // 選択状態をリセット
-      fetchData();        // 履歴を更新
+      setSelectedIds([]);   // 選択状態をリセット
+      fetchData();          // 履歴を更新
+      fetchAllChartData();  // グラフ更新
     }
   }
 };
@@ -197,149 +198,150 @@ const handleBulkDelete = async () => {
   });
 
   return (
-    <div style={{ display: 'flex', gap: '40px', padding: '20px' }}>
-    
-    {/* 左側：履歴表示エリア */}
-    <div style={{ width: '400px' }}>
-      <h2>履歴（直近10回）</h2> 
-        {history.map((item) => (
-          <div key={item.id}
-            style={{ 
-                    borderBottom: '1px solid #ccc',
-                    marginBottom: '5px',
-                    paddingBottom: '10px',
-                    display: 'flex',
-                    alignItems: 'center', // 垂直方向を中央に
-                    gap: '10px'           // チェックボックスとテキストの隙間
-                  }}
-            >
-      {/* 選択用チェックボックス */}
-        <input 
-          type="checkbox" 
-          checked={selectedIds.includes(item.id)}
-          onChange={() => toggleSelect(item.id)}
-          style={{ cursor: 'pointer', width: '20px', height: '20px' }}
-        />
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      
+      {/* --- 上段：資源記録とグラフを横並びにするエリア --- */}
+      <div style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', marginBottom: '40px' }}>
         
-        <div style={{ flex: 1 }}>
-          <p style={{ margin: '0', fontWeight: 'bold' }}>{item.date}</p>
-            <p style={{ margin: '0', fontSize: '0.9em' }}>
-              燃:{item.fuel} / 弾:{item.ammo} / 鋼:{item.steel} / ボ:{item.bauxite} / 開:{item.dev_material} / 改:{item.improvement_material}
-            </p>
+        {/* 1. 資源記録フォーム */}
+        <form onSubmit={handleSubmit} style={{ width: '300px', flexShrink: 0, backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px' }}> 
+          <h2 style={{ marginTop: 0 }}>資源記録</h2>
+          {Object.entries(resourceLabels).map(([key, label]) => (
+            <div key={key} style={{ marginBottom: '10px' }}>
+              <label style={{ display: 'block', fontSize: '14px' }}>{label}</label>
+              <input
+                type="number"
+                name={key}
+                value={formData[key as keyof typeof formData]}
+                onChange={handleChange}
+                placeholder={`前回: ${previousData[key] ?? 0}`}
+                style={{ width: '100%', padding: '5px', boxSizing: 'border-box' }}
+              />
+              {errors[key] && (
+                <p style={{ color: 'red', fontSize: '12px', margin: '0' }}>{errors[key]}</p>
+              )}
+            </div>
+          ))}
+          <button type="submit" style={{ backgroundColor:  '#d4edd4', width: '100%', padding: '10px', cursor: 'pointer' }}>保存する</button>
+        </form>
+
+        {/* 2. 資源推移グラフ */}
+        <div style={{ flex: 1, backgroundColor: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #eee' }}>
+          <h2 style={{ marginTop: 0 }}>資源推移グラフ</h2>
+
+          <div style={{ display: 'flex', gap: '20px', marginBottom: '15px', flexWrap: 'wrap' }}>
+            {/* グラフ切り替え */}
+            <div>
+              <button onClick={() => setChartType('A')} style={{ fontWeight: chartType === 'A' ? 'bold' : 'normal' }}>4資源</button>
+              <button onClick={() => setChartType('B')} style={{ fontWeight: chartType === 'B' ? 'bold' : 'normal', marginLeft: '5px' }}>資材</button>
+            </div>
+
+            {/* 上限値調整 */}
+            <div>
+              <label style={{ fontSize: '14px' }}>縦軸上限: </label>
+              <select 
+                value={currentMax} 
+                onChange={(e) => chartType === 'A' ? setMaxA(Number(e.target.value)) : setMaxB(Number(e.target.value))}
+              >
+                {chartType === 'A' 
+                  ? [50000, 100000, 150000, 200000, 250000, 300000, 350000].map(v => <option key={v} value={v}>{v.toLocaleString()}</option>)
+                  : Array.from({length: 30}, (_, i) => (i + 1) * 100).map(v => <option key={v} value={v}>{v.toLocaleString()}</option>)
+                }
+              </select>
+            </div>
+
+            {/* 期間選択 */}
+            <div>
+              <label style={{ fontSize: '14px' }}>表示期間: </label>
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '2px' }} />
+              <span> 〜 </span>
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '2px' }} />
+            </div>
+          </div>
+
+          {/* グラフ本体 */}
+          <div style={{ width: '100%', height: '400px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={filteredData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis domain={[0, currentMax]} />
+                <Tooltip />
+                <Legend />
+                {currentConfig.map(c => (
+                  <Line 
+                    key={c.key}
+                    type="monotone" 
+                    dataKey={c.key} 
+                    name={c.label} 
+                    stroke={c.color} 
+                    strokeWidth={2} 
+                    dot={{ r: 4 }} 
+                    activeDot={{ r: 8 }} 
+                    connectNulls 
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
-    ))}
+      </div>
 
-    {/* 一括削除ボタン(履歴リストのすぐ下に配置) */}
-    {history.length > 0 && (
-      <button
-        onClick={handleBulkDelete}
-        style={{
-                marginTop: '10px',
-                backgroundColor: selectedIds.length > 0 ? '#f07f7f' : '#ccc', // 選択中のみ赤くする
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                padding: '10px 20px',
-                cursor: selectedIds.length > 0 ? 'pointer' : 'not-allowed',
-                width: '100%'
+      <hr style={{ border: 'none', borderTop: '1px solid #eee', marginBottom: '40px' }} />
+
+      {/* --- 下段：履歴表示エリア --- */}
+      <div style={{ maxWidth: '800px' }}>
+        <h2>履歴（直近10回）</h2> 
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
+          {history.map((item) => (
+            <div key={item.id}
+              style={{ 
+                border: '1px solid #eee',
+                borderRadius: '8px',
+                padding: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '15px',
+                backgroundColor: '#fff'
               }}
-      disabled={selectedIds.length === 0}
-      >
-      選択した項目を削除する ({selectedIds.length}件)
-      </button>
-    )}
-    </div>
-
-    <form onSubmit={handleSubmit} style={{ width: '350px'}}> 
-      <h2>資源記録</h2>
-      {/* Object.entriesを使ってリストから名前を取り出して表示 */}
-      {Object.entries(resourceLabels).map(([key, label]) => (
-        <div key={key} style={{ marginBottom: '10px' }}>
-          <label style={{ display: 'block' }}>{label}</label>
-          <input
-            type="number"
-            name={key}
-            value={formData[key as keyof typeof formData]}
-            onChange={handleChange}
-            // 直近の値を表示する
-            placeholder={`前回: ${previousData[key] ?? 0}`}
-          />
-          {/* エラーがある場合メッセージを表示 */}
-          {errors[key] && (
-            <p style={{ color: 'red', fontSize: '12px', margin: '0' }}>{errors[key]}</p>
-          )}
-        </div>
-      ))}
-      <button type="submit">保存する</button>
-    </form>
-
-    <div style={{ marginTop: '40px', width: '100%', minHeight: '500px', backgroundColor: '#fff', padding: '20px', borderRadius: '8px' }}>
-    <h2>資源推移グラフ</h2>
-
-    {/* グラフ切り替えボタン */}
-    <div style={{ marginBottom: '20px' }}>
-      <button onClick={() => setChartType('A')} style={{ fontWeight: chartType === 'A' ? 'bold' : 'normal' }}>主要4資源 (A)</button>
-      <button onClick={() => setChartType('B')} style={{ fontWeight: chartType === 'B' ? 'bold' : 'normal', marginLeft: '10px' }}>資材 (B)</button>
-    </div>
-
-    {/* 上限値の調整UI */}
-    <div style={{ marginBottom: '20px' }}>
-      <label>縦軸上限: </label>
-      <select 
-        value={currentMax} 
-        onChange={(e) => chartType === 'A' ? setMaxA(Number(e.target.value)) : setMaxB(Number(e.target.value))}
-      >
-        {chartType === 'A' 
-          ? [50000, 100000, 150000, 200000, 250000, 300000, 350000].map(v => <option key={v} value={v}>{v.toLocaleString()}</option>)
-          : Array.from({length: 30}, (_, i) => (i + 1) * 100).map(v => <option key={v} value={v}>{v.toLocaleString()}</option>)
-        }
-      </select>
-    </div>
-    {/* 表示期間切り替えのUI */}
-    <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-      <label>表示期間:</label>
-      <input 
-        type="date" 
-        value={startDate} 
-        onChange={(e) => setStartDate(e.target.value)} 
-        style={{ padding: '5px' }}
-      />
-      <span>〜</span>
-      <input 
-        type="date" 
-        value={endDate} 
-        onChange={(e) => setEndDate(e.target.value)} 
-        style={{ padding: '5px' }}
-      />
-    </div>
-
-    {/* グラフ本体 */}
-    <div style={{ width: '100%', height: 400 }}>
-      <ResponsiveContainer>
-        <LineChart data={filteredData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <YAxis domain={[0, currentMax]} />
-          <Tooltip />
-          <Legend />
-          {currentConfig.map(c => (
-            <Line
-              key={c.key}
-              type="monotone"
-              dataKey={c.key}
-              name={c.label}
-              stroke={c.color}
-              activeDot={{ r: 8 }}
-              connectNulls // データが途切れても線を繋ぐ
-            />
+            >
+              <input 
+                type="checkbox" 
+                checked={selectedIds.includes(item.id)}
+                onChange={() => toggleSelect(item.id)}
+                style={{ cursor: 'pointer', width: '20px', height: '20px' }}
+              />
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#666' }}>{item.date}</p>
+                <p style={{ margin: '0', fontSize: '0.95em', lineHeight: '1.5' }}>
+                  燃:<span style={{fontWeight:'bold'}}>{item.fuel}</span> / 弾:{item.ammo} / 鋼:{item.steel} / ボ:{item.bauxite}<br/>
+                  開:{item.dev_material} / 改:{item.improvement_material}
+                </p>
+              </div>
+            </div>
           ))}
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  </div>
+        </div>
 
-  </div>
+        {history.length > 0 && (
+          <button
+            onClick={handleBulkDelete}
+            style={{
+              marginTop: '20px',
+              backgroundColor: selectedIds.length > 0 ? '#f07f7f' : '#ccc',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '12px 24px',
+              cursor: selectedIds.length > 0 ? 'pointer' : 'not-allowed',
+            }}
+            disabled={selectedIds.length === 0}
+          >
+            選択した項目を削除する ({selectedIds.length}件)
+          </button>
+        )}
+      </div>
+
+    </div>
   );
 }
 
