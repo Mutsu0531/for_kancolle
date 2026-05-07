@@ -18,7 +18,7 @@ function App() {
   const [previousData, setPreviousData] = useState<any>({});
   const [history, setHistory] = useState<any[]>([]); // 履歴用
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [errors, setErrors] = useState<{ [key: string]: string | null }>({}); // エラーメッセージを管理する
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({}); // エラーメッセージを管理
   
   // 表示用の名前を管理するリスト
   const resourceLabels: { [key: string]: string } = {
@@ -164,6 +164,23 @@ const handleBulkDelete = async () => {
   const [maxA, setMaxA] = useState(350000);
   const [maxB, setMaxB] = useState(3000);
 
+  const [visibleLines, setVisibleLines] = useState<{[key: string]: boolean}>({
+    fuel: true,
+    ammo: true,
+    steel: true,
+    bauxite: true,
+    dev_material: true,
+    improvement_material: true,
+  });
+
+  const handleLegendClick = (e: any) => {
+    const { dataKey } = e;
+    setVisibleLines((prev) => ({
+      ...prev,
+      [dataKey]: !prev[dataKey], // 状態を反転させる
+    }));
+  };
+
   // グラフ用のデータを整形（日付順に）
   const chartData = [...history].reverse(); 
 
@@ -177,7 +194,7 @@ const handleBulkDelete = async () => {
 
   // Bグループの設定
   const configB = [
-    { key: 'dev_material', label: '開発資材', color: '#2ecc71' },
+    { key: 'dev_material', label: '開発資材', color: '#2bb2ca' },
     { key: 'improvement_material', label: '改修資材', color: '#9b59b6' },
   ];
 
@@ -200,10 +217,10 @@ const handleBulkDelete = async () => {
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       
-      {/* --- 上段：資源記録とグラフを横並びにするエリア --- */}
+      {/* 上段　資源記録とグラフを横並びにするエリア */}
       <div style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', marginBottom: '40px' }}>
         
-        {/* 1. 資源記録フォーム */}
+        {/* 資源記録フォーム */}
         <form onSubmit={handleSubmit} style={{ width: '300px', flexShrink: 0, backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px' }}> 
           <h2 style={{ marginTop: 0 }}>資源記録</h2>
           {Object.entries(resourceLabels).map(([key, label]) => (
@@ -222,10 +239,10 @@ const handleBulkDelete = async () => {
               )}
             </div>
           ))}
-          <button type="submit" style={{ backgroundColor:  '#d4edd4', width: '100%', padding: '10px', cursor: 'pointer' }}>保存する</button>
+          <button type="submit" style={{ backgroundColor:  '#d4edd4', width: '100%', border: 'none', padding: '10px', cursor: 'pointer' }}>保存する</button>
         </form>
 
-        {/* 2. 資源推移グラフ */}
+        {/* 資源推移グラフ */}
         <div style={{ flex: 1, backgroundColor: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #eee' }}>
           <h2 style={{ marginTop: 0 }}>資源推移グラフ</h2>
 
@@ -265,22 +282,35 @@ const handleBulkDelete = async () => {
               <LineChart data={filteredData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
-                <YAxis domain={[0, currentMax]} />
+                <YAxis 
+                  domain={[0, currentMax]} 
+                  tickCount={6} // 5分割
+                />
                 <Tooltip />
-                <Legend />
-                {currentConfig.map(c => (
-                  <Line 
-                    key={c.key}
-                    type="monotone" 
-                    dataKey={c.key} 
-                    name={c.label} 
-                    stroke={c.color} 
-                    strokeWidth={2} 
-                    dot={{ r: 4 }} 
-                    activeDot={{ r: 8 }} 
-                    connectNulls 
-                  />
-                ))}
+                <Legend onClick={handleLegendClick} wrapperStyle={{ cursor: 'pointer' }} />
+                {chartType === 'A' ? (
+                  <>
+                  <Line type="monotone" dataKey="fuel" name="燃料" stroke="#31a231" 
+                        hide={!visibleLines.fuel} strokeWidth={2} dot={{ r: 4 }} connectNulls />
+      
+                  <Line type="monotone" dataKey="ammo" name="弾薬" stroke="#edad0b" 
+                        hide={!visibleLines.ammo} strokeWidth={2} dot={{ r: 4 }} connectNulls />
+      
+                  <Line type="monotone" dataKey="steel" name="鋼材" stroke="#999" 
+                        hide={!visibleLines.steel} strokeWidth={2} dot={{ r: 4 }} connectNulls />
+      
+                  <Line type="monotone" dataKey="bauxite" name="ボーキサイト" stroke="#e67e22" 
+                        hide={!visibleLines.bauxite} strokeWidth={2} dot={{ r: 4 }} connectNulls />
+                        </>
+                        ) : (
+                  <>
+                  <Line type="monotone" dataKey="dev_material" name="開発資材" stroke="#28bdb6" 
+                        hide={!visibleLines.dev_material} strokeWidth={2} dot={{ r: 4 }} connectNulls />
+      
+                  <Line type="monotone" dataKey="improvement_material" name="改修資材" stroke="#9b59b6" 
+                        hide={!visibleLines.improvement_material} strokeWidth={2} dot={{ r: 4 }} connectNulls />
+                        </>
+                        )}
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -289,7 +319,7 @@ const handleBulkDelete = async () => {
 
       <hr style={{ border: 'none', borderTop: '1px solid #eee', marginBottom: '40px' }} />
 
-      {/* --- 下段：履歴表示エリア --- */}
+      {/* 下段　履歴表示エリア */}
       <div style={{ maxWidth: '800px' }}>
         <h2>履歴（直近10回）</h2> 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
