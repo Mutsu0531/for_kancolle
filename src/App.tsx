@@ -215,17 +215,17 @@ const handleBulkDelete = async () => {
   });
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto' }}>
       
       {/* 上段　資源記録とグラフを横並びにするエリア */}
       <div style={{ display: 'flex', gap: '40px', alignItems: 'flex-start', marginBottom: '40px' }}>
         
         {/* 資源記録フォーム */}
-        <form onSubmit={handleSubmit} style={{ width: '300px', flexShrink: 0, backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px' }}> 
+        <form onSubmit={handleSubmit} style={{ width: '200px', flexShrink: 0, backgroundColor: '#f4f6f9', padding: '20px', borderRadius: '8px' }}> 
           <h2 style={{ marginTop: 0 }}>資源記録</h2>
           {Object.entries(resourceLabels).map(([key, label]) => (
             <div key={key} style={{ marginBottom: '10px' }}>
-              <label style={{ display: 'block', fontSize: '14px' }}>{label}</label>
+              <label style={{ display: 'block', fontSize: '14px' , fontWeight: 'bold', color: '#2b2b2b'}}>{label}</label>
               <input
                 type="number"
                 name={key}
@@ -239,11 +239,11 @@ const handleBulkDelete = async () => {
               )}
             </div>
           ))}
-          <button type="submit" style={{ backgroundColor:  '#d4edd4', width: '100%', border: 'none', padding: '10px', cursor: 'pointer' }}>保存する</button>
+          <button type="submit" style={{ backgroundColor:  '#d4edd4', width: '100%', fontSize: '15px', border: 'none', padding: '10px', cursor: 'pointer',borderRadius: '8px', fontWeight: 'bold', color: '#464646' }}>保存する</button>
         </form>
 
         {/* 資源推移グラフ */}
-        <div style={{ flex: 1, backgroundColor: '#fff', padding: '20px', borderRadius: '8px', border: '1px solid #eee' }}>
+        <div style={{ flexGrow: 1, minWidth: 0, backgroundColor: '#ffffff', padding: '20px', borderRadius: '8px', border: '1px solid #eee', overflow: 'hidden' }}>
           <h2 style={{ marginTop: 0 }}>資源推移グラフ</h2>
 
           <div style={{ display: 'flex', gap: '20px', marginBottom: '15px', flexWrap: 'wrap' }}>
@@ -279,7 +279,7 @@ const handleBulkDelete = async () => {
           {/* グラフ本体 */}
           <div style={{ width: '100%', height: '400px' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={filteredData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <LineChart data={filteredData} margin={{ top: 5, right: 50, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis 
@@ -293,10 +293,10 @@ const handleBulkDelete = async () => {
                   <Line type="monotone" dataKey="fuel" name="燃料" stroke="#31a231" 
                         hide={!visibleLines.fuel} strokeWidth={2} dot={{ r: 4 }} connectNulls />
       
-                  <Line type="monotone" dataKey="ammo" name="弾薬" stroke="#edad0b" 
+                  <Line type="monotone" dataKey="ammo" name="弾薬" stroke="#c49111" 
                         hide={!visibleLines.ammo} strokeWidth={2} dot={{ r: 4 }} connectNulls />
       
-                  <Line type="monotone" dataKey="steel" name="鋼材" stroke="#999" 
+                  <Line type="monotone" dataKey="steel" name="鋼材" stroke="#757575" 
                         hide={!visibleLines.steel} strokeWidth={2} dot={{ r: 4 }} connectNulls />
       
                   <Line type="monotone" dataKey="bauxite" name="ボーキサイト" stroke="#e67e22" 
@@ -344,7 +344,7 @@ const handleBulkDelete = async () => {
               <div style={{ flex: 1 }}>
                 <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#666' }}>{item.date}</p>
                 <p style={{ margin: '0', fontSize: '0.95em', lineHeight: '1.5' }}>
-                  燃:<span style={{fontWeight:'bold'}}>{item.fuel}</span> / 弾:{item.ammo} / 鋼:{item.steel} / ボ:{item.bauxite}<br/>
+                  燃:{item.fuel} / 弾:{item.ammo} / 鋼:{item.steel} / ボ:{item.bauxite}<br/>
                   開:{item.dev_material} / 改:{item.improvement_material}
                 </p>
               </div>
