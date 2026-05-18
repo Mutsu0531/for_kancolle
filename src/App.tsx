@@ -12,7 +12,7 @@ const getGameDay = () => {
 
 function App() {
   const [formData, setFormData] = useState({
-    fuel: '', ammo: '', steel: '', bauxite: '', dev_material: '', improvement_material: ''
+    fuel: '', ammo: '', steel: '', bauxite: '', dev_material: '', improvement_material: '', bucket: ''
   });
 
   const [previousData, setPreviousData] = useState<any>({});
@@ -27,7 +27,8 @@ function App() {
     steel: '鋼材',
     bauxite: 'ボーキサイト',
     dev_material: '開発資材',
-    improvement_material: '改修資材'
+    improvement_material: '改修資材',
+    bucket: 'バケツ'
   };
 
   //useEffect(() => {
@@ -153,7 +154,7 @@ const handleBulkDelete = async () => {
       //　ここにフォームを空にする処理
       setFormData({
         fuel: '', ammo: '', steel: '', bauxite: '', 
-        dev_material: '', improvement_material: ''
+        dev_material: '', improvement_material: '', bucket: ''
       });
     }
   };
@@ -171,6 +172,7 @@ const handleBulkDelete = async () => {
     bauxite: true,
     dev_material: true,
     improvement_material: true,
+    bucket: true,
   });
 
   const handleLegendClick = (e: any) => {
@@ -194,8 +196,9 @@ const handleBulkDelete = async () => {
 
   // Bグループの設定
   const configB = [
-    { key: 'dev_material', label: '開発資材', color: '#2bb2ca' },
+    { key: 'dev_material', label: '開発資材', color: '#20a09a' },
     { key: 'improvement_material', label: '改修資材', color: '#9b59b6' },
+    { key: 'bucket', label: 'バケツ', color: '#42a56f'}
   ];
 
   const currentConfig = chartType === 'A' ? configA : configB;
@@ -304,11 +307,14 @@ const handleBulkDelete = async () => {
                         </>
                         ) : (
                   <>
-                  <Line type="monotone" dataKey="dev_material" name="開発資材" stroke="#28bdb6" 
+                  <Line type="monotone" dataKey="dev_material" name="開発資材" stroke="#20a09a" 
                         hide={!visibleLines.dev_material} strokeWidth={2} dot={{ r: 4 }} connectNulls />
       
                   <Line type="monotone" dataKey="improvement_material" name="改修資材" stroke="#9b59b6" 
                         hide={!visibleLines.improvement_material} strokeWidth={2} dot={{ r: 4 }} connectNulls />
+                  
+                  <Line type="monotone" dataKey="bucket" name="バケツ" stroke="#42a56f" 
+                        hide={!visibleLines.bucket} strokeWidth={2} dot={{ r: 4 }} connectNulls />
                         </>
                         )}
               </LineChart>
@@ -345,7 +351,7 @@ const handleBulkDelete = async () => {
                 <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', color: '#666' }}>{item.date}</p>
                 <p style={{ margin: '0', fontSize: '0.95em', lineHeight: '1.5' }}>
                   燃:{item.fuel} / 弾:{item.ammo} / 鋼:{item.steel} / ボ:{item.bauxite}<br/>
-                  開:{item.dev_material} / 改:{item.improvement_material}
+                  開:{item.dev_material} / 改:{item.improvement_material} / バ:{item.bucket}
                 </p>
               </div>
             </div>
