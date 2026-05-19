@@ -25,9 +25,9 @@ function App() {
     ammo: "",
     steel: "",
     bauxite: "",
+    bucket: "",
     dev_material: "",
     improvement_material: "",
-    bucket: "",
   });
 
   const [previousData, setPreviousData] = useState<any>({});
@@ -41,9 +41,9 @@ function App() {
     ammo: "弾薬",
     steel: "鋼材",
     bauxite: "ボーキサイト",
+    bucket: "バケツ",
     dev_material: "開発資材",
     improvement_material: "改修資材",
-    bucket: "バケツ",
   };
 
   //useEffect(() => {
@@ -470,13 +470,39 @@ function App() {
       <hr style={{ border: "none", borderTop: "1px solid #eee", marginBottom: "40px" }} />
 
       {/* 下段　履歴表示エリア */}
-      <div style={{ maxWidth: "800px" }}>
-        <h2>履歴（直近10回）</h2>
+      <details
+        style={{
+          maxWidth: "800px",
+          margin: "0 auto", // 中央寄せ
+          border: "1px solid #eee",
+          borderRadius: "8px",
+          backgroundColor: "#f4f6f9",
+          padding: "0 16px",
+        }}
+      >
+        <summary
+          style={{
+            cursor: "pointer",
+            fontSize: "1.5em",
+            fontWeight: "bold",
+            padding: "16px 0",
+            color: "#2b2b2b",
+          }}
+        >
+          履歴（直近10回）
+          {selectedIds.length > 0 && (
+            <span style={{ marginLeft: "12px", fontSize: "14px", color: "#f07f7f" }}>
+              {selectedIds.length}件選択中
+            </span>
+          )}
+        </summary>
+
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
             gap: "20px",
+            paddingBottom: "16px",
           }}
         >
           {history.map((item) => (
@@ -516,7 +542,7 @@ function App() {
           <button
             onClick={handleBulkDelete}
             style={{
-              marginTop: "20px",
+              margin: "4px 0 20px",
               backgroundColor: selectedIds.length > 0 ? "#f07f7f" : "#ccc",
               color: "white",
               border: "none",
@@ -529,7 +555,7 @@ function App() {
             選択した項目を削除する ({selectedIds.length}件)
           </button>
         )}
-      </div>
+      </details>
     </div>
   );
 }
