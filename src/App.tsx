@@ -127,7 +127,6 @@ const handleBulkDelete = async () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); 
-    const today = new Date().toISOString().split('T')[0];
     // 5:00区切りの日付を取得
     const gameDay = getGameDay();
     const sanitizedData = Object.entries(formData).reduce((acc, [key, value]) => {
@@ -170,9 +169,9 @@ const handleBulkDelete = async () => {
     ammo: true,
     steel: true,
     bauxite: true,
+    bucket: true,
     dev_material: true,
     improvement_material: true,
-    bucket: true,
   });
 
   const handleLegendClick = (e: any) => {
@@ -182,9 +181,6 @@ const handleBulkDelete = async () => {
       [dataKey]: !prev[dataKey], // 状態を反転させる
     }));
   };
-
-  // グラフ用のデータを整形（日付順に）
-  const chartData = [...history].reverse(); 
 
   // Aグループの設定
   const configA = [
@@ -196,13 +192,16 @@ const handleBulkDelete = async () => {
 
   // Bグループの設定
   const configB = [
-    { key: 'dev_material', label: '開発資材', color: '#20a09a' },
-    { key: 'improvement_material', label: '改修資材', color: '#9b59b6' },
-    { key: 'bucket', label: 'バケツ', color: '#42a56f'}
+    { key: 'bucket', label: 'バケツ', color: '#3e9a5c'},
+    { key: 'dev_material', label: '開発資材', color: '#4074b8' },
+    { key: 'improvement_material', label: '改修資材', color: '#9b59b6' }   
   ];
 
   const currentConfig = chartType === 'A' ? configA : configB;
   const currentMax = chartType === 'A' ? maxA : maxB;
+  const sortLegendItems = (item: any) => {
+    return currentConfig.findIndex((config) => config.key === item.dataKey);
+  };
   // グラフ用の全データ
   const [allChartData, setAllChartData] = useState<any[]>([]);
 
@@ -216,6 +215,8 @@ const handleBulkDelete = async () => {
   const filteredData = allChartData.filter(item => {
     return item.date >= startDate && item.date <= endDate;
   });
+
+  console.log(allChartData)
 
   return (
     <div style={{ padding: '20px', maxWidth: '1300px', margin: '0 auto' }}>
@@ -290,7 +291,7 @@ const handleBulkDelete = async () => {
                   tickCount={6} // 5分割
                 />
                 <Tooltip />
-                <Legend onClick={handleLegendClick} wrapperStyle={{ cursor: 'pointer' }} />
+                <Legend itemSorter={sortLegendItems} onClick={handleLegendClick} wrapperStyle={{ cursor: 'pointer' }} />
                 {chartType === 'A' ? (
                   <>
                   <Line type="monotone" dataKey="fuel" name="燃料" stroke="#31a231" 
@@ -307,14 +308,14 @@ const handleBulkDelete = async () => {
                         </>
                         ) : (
                   <>
-                  <Line type="monotone" dataKey="dev_material" name="開発資材" stroke="#20a09a" 
+                  <Line type="monotone" dataKey="bucket" name="バケツ" stroke="#3e9a5c" 
+                        hide={!visibleLines.bucket} strokeWidth={2} dot={{ r: 4 }} connectNulls />
+
+                  <Line type="monotone" dataKey="dev_material" name="開発資材" stroke="#4074b8" 
                         hide={!visibleLines.dev_material} strokeWidth={2} dot={{ r: 4 }} connectNulls />
       
                   <Line type="monotone" dataKey="improvement_material" name="改修資材" stroke="#9b59b6" 
                         hide={!visibleLines.improvement_material} strokeWidth={2} dot={{ r: 4 }} connectNulls />
-                  
-                  <Line type="monotone" dataKey="bucket" name="バケツ" stroke="#42a56f" 
-                        hide={!visibleLines.bucket} strokeWidth={2} dot={{ r: 4 }} connectNulls />
                         </>
                         )}
               </LineChart>
