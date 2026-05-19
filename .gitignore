@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 .env
 todo_memo.txt
+todo_memo.md
