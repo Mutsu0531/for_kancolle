@@ -34,6 +34,15 @@ function App() {
   const [history, setHistory] = useState<any[]>([]); // 履歴用
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({}); // エラーメッセージを管理
+  const inputDigitLimits: { [key: string]: number } = {
+    fuel: 6,
+    ammo: 6,
+    steel: 6,
+    bauxite: 6,
+    bucket: 4,
+    dev_material: 4,
+    improvement_material: 4,
+  };
 
   // 表示用の名前を管理するリスト
   const resourceLabels: { [key: string]: string } = {
@@ -121,6 +130,13 @@ function App() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    const digitLimit = inputDigitLimits[name];
+    const isValidInteger = /^\d*$/.test(value);
+
+    if (!isValidInteger || (digitLimit && value.length > digitLimit)) {
+      return;
+    }
+
     const numValue = Number(value);
 
     // チェック対象の資源リスト
@@ -294,6 +310,8 @@ function App() {
                 name={key}
                 value={formData[key as keyof typeof formData]}
                 onChange={handleChange}
+                max={10 ** inputDigitLimits[key] - 1}
+                min={0}
                 placeholder={`前回: ${previousData[key] ?? 0}`}
                 style={{ width: "100%", padding: "5px", boxSizing: "border-box" }}
               />
