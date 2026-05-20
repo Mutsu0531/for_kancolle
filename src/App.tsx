@@ -176,8 +176,13 @@ function App() {
 
   // グラフ切り替え用
   const [chartType, setChartType] = useState<"A" | "B">("A");
-  // AとBそれぞれの上限値管理
+  const axisOptionsA = [0, 50000, 100000, 150000, 200000, 250000, 300000, 350000];
+  const axisOptionsB = Array.from({ length: 31 }, (_, i) => i * 100);
+
+  // AとBそれぞれの縦軸範囲管理
+  const [minA, setMinA] = useState(0);
   const [maxA, setMaxA] = useState(350000);
+  const [minB, setMinB] = useState(0);
   const [maxB, setMaxB] = useState(3000);
 
   const [visibleLines, setVisibleLines] = useState<{ [key: string]: boolean }>({
@@ -214,7 +219,34 @@ function App() {
   ];
 
   const currentConfig = chartType === "A" ? configA : configB;
+  const currentMin = chartType === "A" ? minA : minB;
   const currentMax = chartType === "A" ? maxA : maxB;
+  const setChartMin = (value: number) => {
+    if (chartType === "A") {
+      setMinA(value);
+      if (value >= maxA) {
+        setMaxA(350000);
+      }
+    } else {
+      setMinB(value);
+      if (value >= maxB) {
+        setMaxB(3000);
+      }
+    }
+  };
+  const setChartMax = (value: number) => {
+    if (chartType === "A") {
+      setMaxA(value);
+      if (value <= minA) {
+        setMinA(0);
+      }
+    } else {
+      setMaxB(value);
+      if (value <= minB) {
+        setMinB(0);
+      }
+    }
+  };
   const sortLegendItems = (item: any) => {
     return currentConfig.findIndex((config) => config.key === item.dataKey);
   };
@@ -232,7 +264,7 @@ function App() {
     return item.date >= startDate && item.date <= endDate;
   });
 
-  console.log(allChartData);
+  console.log(allChartData); // デバッグ用
 
   return (
     <div style={{ padding: "20px", maxWidth: "1300px", margin: "0 auto" }}>
@@ -319,24 +351,31 @@ function App() {
               </button>
             </div>
 
+            {/* 下限値調整 */}
+            <div>
+              <label style={{ fontSize: "14px" }}>縦軸下限: </label>
+              <select value={currentMin} onChange={(e) => setChartMin(Number(e.target.value))}>
+                {(chartType === "A" ? axisOptionsA.slice(0, -1) : axisOptionsB.slice(0, -1)).map(
+                  (v) => (
+                    <option key={v} value={v}>
+                      {v.toLocaleString()}
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+
             {/* 上限値調整 */}
             <div>
               <label style={{ fontSize: "14px" }}>縦軸上限: </label>
-              <select
-                value={currentMax}
-                onChange={(e) =>
-                  chartType === "A"
-                    ? setMaxA(Number(e.target.value))
-                    : setMaxB(Number(e.target.value))
-                }
-              >
+              <select value={currentMax} onChange={(e) => setChartMax(Number(e.target.value))}>
                 {chartType === "A"
-                  ? [50000, 100000, 150000, 200000, 250000, 300000, 350000].map((v) => (
+                  ? axisOptionsA.slice(1).map((v) => (
                       <option key={v} value={v}>
                         {v.toLocaleString()}
                       </option>
                     ))
-                  : Array.from({ length: 30 }, (_, i) => (i + 1) * 100).map((v) => (
+                  : axisOptionsB.slice(1).map((v) => (
                       <option key={v} value={v}>
                         {v.toLocaleString()}
                       </option>
@@ -370,7 +409,8 @@ function App() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis
-                  domain={[0, currentMax]}
+                  domain={[currentMin, currentMax]}
+                  allowDataOverflow
                   tickCount={6} // 5分割
                 />
                 <Tooltip />
