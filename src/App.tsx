@@ -28,6 +28,7 @@ function App() {
     bucket: "",
     dev_material: "",
     improvement_material: "",
+    memo: "",
   });
 
   const [previousData, setPreviousData] = useState<any>({});
@@ -128,8 +129,12 @@ function App() {
     }
   };*/
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    if (name === "memo") {
+      setFormData({ ...formData, [name]: value });
+      return;
+    }
     const digitLimit = inputDigitLimits[name];
     const isValidInteger = /^\d*$/.test(value);
 
@@ -158,7 +163,11 @@ function App() {
     // 5:00区切りの日付を取得
     const gameDay = getGameDay();
     const sanitizedData = Object.entries(formData).reduce((acc, [key, value]) => {
-      acc[key] = value === "" ? (previousData[key] ?? 0) : Number(value);
+      if (key === "memo") {
+        acc[key] = value;
+      } else {
+        acc[key] = value === "" ? (previousData[key] ?? 0) : Number(value);
+      }
       return acc;
     }, {} as any);
 
@@ -186,6 +195,7 @@ function App() {
         dev_material: "",
         improvement_material: "",
         bucket: "",
+        memo: "",
       });
     }
   };
@@ -320,6 +330,32 @@ function App() {
               )}
             </div>
           ))}
+
+          {/* メモ入力欄 */}
+          <div style={{ marginBottom: "15px" }}>
+            <label
+              style={{ display: "block", fontSize: "14px", fontWeight: "bold", color: "#2b2b2b" }}
+            >
+              メモ
+            </label>
+            <textarea
+              name="memo"
+              value={formData.memo}
+              onChange={handleChange}
+              placeholder="ここにメモを書けます &#13;&#10;例：夏イベ開始"
+              rows={2}
+              style={{
+                width: "100%",
+                padding: "5px",
+                boxSizing: "border-box",
+                borderRadius: "4px",
+                border: "1px solid #ccc",
+                resize: "none", // 枠のサイズ変更を固定
+                fontFamily: "inherit",
+              }}
+            />
+          </div>
+
           <button
             type="submit"
             style={{
@@ -431,7 +467,7 @@ function App() {
                   allowDataOverflow
                   tickCount={6} // 5分割
                 />
-                <Tooltip />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend
                   itemSorter={sortLegendItems}
                   onClick={handleLegendClick}
@@ -591,6 +627,21 @@ function App() {
                   <br />
                   開:{item.dev_material} / 改:{item.improvement_material} / バ:{item.bucket}
                 </p>
+                {item.memo && (
+                  <p
+                    style={{
+                      margin: "5px 0 0 0",
+                      fontSize: "0.85em",
+                      color: "#555",
+                      backgroundColor: "#f0f2f5",
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      borderLeft: "3px solid #4074b8",
+                    }}
+                  >
+                    {item.memo}
+                  </p>
+                )}
               </div>
             </div>
           ))}
@@ -618,4 +669,54 @@ function App() {
   );
 }
 
+// ★Tooltipの見た目と表示内容をカスタムするコンポーネント
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    // グラフのデータ（filteredDataの1行分）は payload[0].payload に入っています
+    const data = payload[0].payload;
+
+    return (
+      <div
+        style={{
+          backgroundColor: "rgba(255, 255, 255, 0.95)",
+          padding: "12px",
+          border: "1px solid #ccc",
+          borderRadius: "6px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+          fontSize: "14px",
+          lineHeight: "1.6",
+        }}
+      >
+        <p style={{ margin: "0 0 6px 0", fontWeight: "bold", color: "#333" }}>{label}</p>
+
+        {/* 各資源の数値をループ表示 */}
+        {payload.map((entry: any) => (
+          <div key={entry.dataKey} style={{ color: entry.stroke, fontWeight: "medium" }}>
+            {entry.name}: {Number(entry.value).toLocaleString()}
+          </div>
+        ))}
+
+        {/* メモが存在する場合のみ、区切り線と一緒に表示 */}
+        {data.memo && (
+          <div
+            style={{
+              marginTop: "8px",
+              paddingTop: "6px",
+              borderTop: "1px dashed #bbb",
+              color: "#555",
+              fontSize: "13px",
+              maxWidth: "200px",
+              wordBreak: "break-all",
+            }}
+          >
+            <strong style={{ color: "#4074b8" }}>📝 メモ:</strong>
+            <br />
+            {data.memo}
+          </div>
+        )}
+      </div>
+    );
+  }
+  return null;
+};
 export default App;
