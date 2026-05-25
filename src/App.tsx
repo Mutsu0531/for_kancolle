@@ -665,14 +665,43 @@ function App() {
           </button>
         )}
       </details>
+
+      <section
+        style={{
+          maxWidth: "800px",
+          margin: "24px auto 0",
+          padding: "16px 20px",
+          border: "1px solid #eee",
+          borderRadius: "8px",
+          backgroundColor: "#fff",
+          color: "#444",
+        }}
+      >
+        <h2 style={{ margin: "0 0 10px 0", fontSize: "1.1em" }}>注意事項</h2>
+        <ul
+          style={{
+            margin: 0,
+            paddingLeft: "80px",
+            lineHeight: "1.8",
+            fontSize: "0.95em",
+            textAlign: "left",
+          }}
+        >
+          <li>日付は午前5時を区切りとして記録されます。</li>
+          <li>入力欄を空欄のまま保存した場合、その項目は前回の値で保存されます。</li>
+          <li>
+            同じ日付のデータを保存すると、既存の記録（同じ日付に記録したデータ）は上書きされます。
+          </li>
+          <li>履歴から削除したデータは元に戻せないため、削除前に内容を確認してください。</li>
+        </ul>
+      </section>
     </div>
   );
 }
 
-// ★Tooltipの見た目と表示内容をカスタムするコンポーネント
+// Tooltipの見た目と表示内容をカスタムするコンポーネント
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
-    // グラフのデータ（filteredDataの1行分）は payload[0].payload に入っています
     const data = payload[0].payload;
 
     return (
