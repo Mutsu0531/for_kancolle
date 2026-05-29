@@ -293,9 +293,30 @@ function App() {
   console.log(allChartData); // デバッグ用
 
   return (
-    <div style={{ padding: "20px", maxWidth: "1300px", margin: "0 auto" }}>
+    <div style={{ padding: "0px", maxWidth: "1300px", margin: "0 auto" }}>
+      <section
+        style={{
+          maxWidth: "300px",
+          margin: "15px auto 0",
+          padding: "16px 20px",
+          border: "1px solid #eee",
+          borderRadius: "8px",
+          backgroundColor: "#fff",
+          color: "#444",
+        }}
+      >
+        <h2 style={{ margin: "0 0 10px 0", fontSize: "2em" }}>資源管理</h2>
+      </section>
       {/* 上段　資源記録とグラフを横並びにするエリア */}
-      <div style={{ display: "flex", gap: "40px", alignItems: "flex-start", marginBottom: "40px" }}>
+      <div
+        style={{
+          padding: "10px",
+          display: "flex",
+          gap: "40px",
+          alignItems: "flex-start",
+          marginBottom: "40px",
+        }}
+      >
         {/* 資源記録フォーム */}
         <form
           onSubmit={handleSubmit}
