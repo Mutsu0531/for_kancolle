@@ -19,7 +19,7 @@ const getGameDay = () => {
   return offsetDate.toISOString().split("T")[0];
 };
 
-function App() {
+function ResourcePage() {
   const [formData, setFormData] = useState({
     fuel: "",
     ammo: "",
@@ -769,4 +769,4 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   }
   return null;
 };
-export default App;
+export default ResourcePage;
