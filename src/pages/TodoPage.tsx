@@ -5,8 +5,13 @@ type Todo = {
   id: string;
   title: string;
   memo: string | null;
+  date: string | null;
   is_done: boolean;
   created_at: string;
+};
+
+const getToday = () => {
+  return new Date().toISOString().split("T")[0];
 };
 
 function TodoPage() {
@@ -50,6 +55,7 @@ function TodoPage() {
       {
         title: trimmedTitle,
         memo: trimmedMemo || null,
+        date: getToday(),
         is_done: false,
       },
     ]);
@@ -135,7 +141,7 @@ function TodoPage() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="例：遠征を出す"
+            placeholder="例：陸奥を改二に改装"
             style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
           />
         </div>
@@ -208,6 +214,9 @@ function TodoPage() {
                 />
 
                 <div style={{ flex: 1 }}>
+                  <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>
+                    {todo.date ?? todo.created_at.split("T")[0]}
+                  </p>
                   <p
                     style={{
                       margin: "0 0 6px",
