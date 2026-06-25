@@ -19,6 +19,9 @@ function TodoPage() {
   const [title, setTitle] = useState("");
   const [memo, setMemo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editMemo, setEditMemo] = useState("");
 
   const fetchTodos = async () => {
     const { data, error } = await supabase
@@ -45,7 +48,7 @@ function TodoPage() {
     const trimmedMemo = memo.trim();
 
     if (!trimmedTitle) {
-      alert("todoのタイトルを入力してください");
+      alert("タイトルを入力してください");
       return;
     }
 
@@ -63,7 +66,7 @@ function TodoPage() {
     setIsLoading(false);
 
     if (error) {
-      alert("todoの保存に失敗しました: " + error.message);
+      alert("保存に失敗しました: " + error.message);
       return;
     }
 
@@ -79,13 +82,55 @@ function TodoPage() {
       .eq("id", todo.id);
 
     if (error) {
-      alert("todoの更新に失敗しました: " + error.message);
+      alert("更新に失敗しました: " + error.message);
       return;
     }
 
     setTodos((prev) =>
       prev.map((item) => (item.id === todo.id ? { ...item, is_done: !item.is_done } : item)),
     );
+  };
+
+  const startEditTodo = (todo: Todo) => {
+    setEditingId(todo.id);
+    setEditTitle(todo.title);
+    setEditMemo(todo.memo ?? "");
+  };
+
+  const cancelEditTodo = () => {
+    setEditingId(null);
+    setEditTitle("");
+    setEditMemo("");
+  };
+
+  const saveEditTodo = async (id: string) => {
+    const trimmedTitle = editTitle.trim();
+    const trimmedMemo = editMemo.trim();
+
+    if (!trimmedTitle) {
+      alert("タイトルを入力してください");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("todos")
+      .update({
+        title: trimmedTitle,
+        memo: trimmedMemo || null,
+      })
+      .eq("id", id);
+
+    if (error) {
+      alert("更新に失敗しました: " + error.message);
+      return;
+    }
+
+    setTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === id ? { ...todo, title: trimmedTitle, memo: trimmedMemo || null } : todo,
+      ),
+    );
+    cancelEditTodo();
   };
 
   const deleteTodo = async (id: string) => {
@@ -98,7 +143,7 @@ function TodoPage() {
     const { error } = await supabase.from("todos").delete().eq("id", id);
 
     if (error) {
-      alert("todoの削除に失敗しました: " + error.message);
+      alert("削除に失敗しました: " + error.message);
       return;
     }
 
@@ -193,65 +238,155 @@ function TodoPage() {
           <p style={{ color: "#666" }}>todoはまだありません。</p>
         ) : (
           <div style={{ display: "grid", gap: "12px" }}>
-            {todos.map((todo) => (
-              <div
-                key={todo.id}
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  alignItems: "flex-start",
-                  border: "1px solid #eee",
-                  borderRadius: "8px",
-                  padding: "14px",
-                  backgroundColor: todo.is_done ? "#f0f2f5" : "#fff",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={todo.is_done}
-                  onChange={() => toggleTodo(todo)}
-                  style={{ width: "20px", height: "20px", cursor: "pointer", marginTop: "2px" }}
-                />
+            {todos.map((todo) => {
+              const isEditing = editingId === todo.id;
 
-                <div style={{ flex: 1 }}>
-                  <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>
-                    {todo.date ?? todo.created_at.split("T")[0]}
-                  </p>
-                  <p
-                    style={{
-                      margin: "0 0 6px",
-                      fontWeight: "bold",
-                      color: todo.is_done ? "#888" : "#333",
-                      textDecoration: todo.is_done ? "line-through" : "none",
-                    }}
-                  >
-                    {todo.title}
-                  </p>
-
-                  {todo.memo && (
-                    <p style={{ margin: 0, color: "#555", fontSize: "0.95em", lineHeight: "1.5" }}>
-                      {todo.memo}
-                    </p>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => deleteTodo(todo.id)}
+              return (
+                <div
+                  key={todo.id}
                   style={{
-                    backgroundColor: "#f07f7f",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "4px",
-                    padding: "8px 12px",
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
+                    display: "flex",
+                    gap: "12px",
+                    alignItems: "flex-start",
+                    border: "1px solid #eee",
+                    borderRadius: "8px",
+                    padding: "14px",
+                    backgroundColor: todo.is_done ? "#f0f2f5" : "#fff",
                   }}
                 >
-                  削除
-                </button>
-              </div>
-            ))}
+                  <input
+                    type="checkbox"
+                    checked={todo.is_done}
+                    onChange={() => toggleTodo(todo)}
+                    disabled={isEditing}
+                    style={{ width: "20px", height: "20px", cursor: "pointer", marginTop: "2px" }}
+                  />
+
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>
+                      {todo.date ?? todo.created_at.split("T")[0]}
+                    </p>
+
+                    {isEditing ? (
+                      <div style={{ display: "grid", gap: "8px" }}>
+                        <input
+                          type="text"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
+                        />
+                        <textarea
+                          value={editMemo}
+                          onChange={(e) => setEditMemo(e.target.value)}
+                          rows={3}
+                          style={{
+                            width: "100%",
+                            padding: "8px",
+                            boxSizing: "border-box",
+                            resize: "vertical",
+                            fontFamily: "inherit",
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <p
+                          style={{
+                            margin: "0 0 6px",
+                            fontWeight: "bold",
+                            color: todo.is_done ? "#888" : "#333",
+                            textDecoration: todo.is_done ? "line-through" : "none",
+                          }}
+                        >
+                          {todo.title}
+                        </p>
+
+                        {todo.memo && (
+                          <p
+                            style={{
+                              margin: 0,
+                              color: "#555",
+                              fontSize: "0.95em",
+                              lineHeight: "1.5",
+                            }}
+                          >
+                            {todo.memo}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  {isEditing ? (
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        type="button"
+                        onClick={() => saveEditTodo(todo.id)}
+                        style={{
+                          backgroundColor: "#d4edd4",
+                          color: "#464646",
+                          border: "none",
+                          borderRadius: "4px",
+                          padding: "8px 12px",
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        保存
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelEditTodo}
+                        style={{
+                          backgroundColor: "#ccc",
+                          color: "#333",
+                          border: "none",
+                          borderRadius: "4px",
+                          padding: "8px 12px",
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        キャンセル
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        type="button"
+                        onClick={() => startEditTodo(todo)}
+                        style={{
+                          backgroundColor: "#d4edd4",
+                          color: "#464646",
+                          border: "none",
+                          borderRadius: "4px",
+                          padding: "8px 12px",
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        編集
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteTodo(todo.id)}
+                        style={{
+                          backgroundColor: "#f07f7f",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "4px",
+                          padding: "8px 12px",
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        削除
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </section>
