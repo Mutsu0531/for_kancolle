@@ -23,6 +23,9 @@ function TodoPage() {
   const [editTitle, setEditTitle] = useState("");
   const [editMemo, setEditMemo] = useState("");
 
+  const activeTodos = todos.filter((todo) => !todo.is_done);
+  const completedTodos = todos.filter((todo) => todo.is_done);
+
   const fetchTodos = async () => {
     const { data, error } = await supabase
       .from("todos")
@@ -234,11 +237,11 @@ function TodoPage() {
       <section>
         <h3 style={{ marginTop: 0 }}>todo一覧</h3>
 
-        {todos.length === 0 ? (
+        {activeTodos.length === 0 ? (
           <p style={{ color: "#666" }}>todoはまだありません。</p>
         ) : (
           <div style={{ display: "grid", gap: "12px" }}>
-            {todos.map((todo) => {
+            {activeTodos.map((todo) => {
               const isEditing = editingId === todo.id;
 
               return (
@@ -254,14 +257,6 @@ function TodoPage() {
                     backgroundColor: todo.is_done ? "#f0f2f5" : "#fff",
                   }}
                 >
-                  <input
-                    type="checkbox"
-                    checked={todo.is_done}
-                    onChange={() => toggleTodo(todo)}
-                    disabled={isEditing}
-                    style={{ width: "20px", height: "20px", cursor: "pointer", marginTop: "2px" }}
-                  />
-
                   <div style={{ flex: 1 }}>
                     <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>
                       {todo.date ?? todo.created_at.split("T")[0]}
@@ -354,9 +349,24 @@ function TodoPage() {
                     <div style={{ display: "flex", gap: "8px" }}>
                       <button
                         type="button"
-                        onClick={() => startEditTodo(todo)}
+                        onClick={() => toggleTodo(todo)}
                         style={{
                           backgroundColor: "#d4edd4",
+                          color: "#464646",
+                          border: "none",
+                          borderRadius: "4px",
+                          padding: "8px 12px",
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        完了
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => startEditTodo(todo)}
+                        style={{
+                          backgroundColor: "#b6ebec",
                           color: "#464646",
                           border: "none",
                           borderRadius: "4px",
@@ -390,6 +400,104 @@ function TodoPage() {
           </div>
         )}
       </section>
+
+      <details
+        style={{
+          marginTop: "24px",
+          border: "1px solid #eee",
+          borderRadius: "8px",
+          backgroundColor: "#f4f6f9",
+          padding: "0 16px",
+        }}
+      >
+        <summary
+          style={{
+            cursor: "pointer",
+            fontSize: "1.2em",
+            fontWeight: "bold",
+            padding: "16px 0",
+            color: "#2b2b2b",
+          }}
+        >
+          達成済み ({completedTodos.length}件)
+        </summary>
+
+        {completedTodos.length === 0 ? (
+          <p style={{ margin: "0 0 16px", color: "#666" }}>達成済みのtodoはまだありません。</p>
+        ) : (
+          <div style={{ display: "grid", gap: "12px", paddingBottom: "16px" }}>
+            {completedTodos.map((todo) => (
+              <div
+                key={todo.id}
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  alignItems: "flex-start",
+                  border: "1px solid #eee",
+                  borderRadius: "8px",
+                  padding: "14px",
+                  backgroundColor: "#fff",
+                }}
+              >
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>
+                    {todo.date ?? todo.created_at.split("T")[0]}
+                  </p>
+                  <p
+                    style={{
+                      margin: "0 0 6px",
+                      fontWeight: "bold",
+                      color: "#888",
+                      textDecoration: "line-through",
+                    }}
+                  >
+                    {todo.title}
+                  </p>
+
+                  {todo.memo && (
+                    <p style={{ margin: 0, color: "#555", fontSize: "0.95em", lineHeight: "1.5" }}>
+                      {todo.memo}
+                    </p>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={() => toggleTodo(todo)}
+                    style={{
+                      backgroundColor: "#ccc",
+                      color: "#333",
+                      border: "none",
+                      borderRadius: "4px",
+                      padding: "8px 12px",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    戻す
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteTodo(todo.id)}
+                    style={{
+                      backgroundColor: "#f07f7f",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: "4px",
+                      padding: "8px 12px",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    削除
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </details>
     </div>
   );
 }
