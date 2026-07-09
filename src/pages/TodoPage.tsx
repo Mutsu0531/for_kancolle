@@ -154,7 +154,7 @@ function TodoPage() {
   };
 
   return (
-    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
+    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
       <section
         style={{
           maxWidth: "320px",
@@ -170,236 +170,247 @@ function TodoPage() {
         <h2 style={{ margin: 0, fontSize: "2em" }}>todoメモ</h2>
       </section>
 
-      <form
-        onSubmit={handleAddTodo}
+      <div
         style={{
-          backgroundColor: "#f4f6f9",
-          borderRadius: "8px",
-          padding: "20px",
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr) 320px",
+          gap: "24px",
+          alignItems: "flex-start",
           marginBottom: "24px",
         }}
       >
-        <div style={{ marginBottom: "12px" }}>
-          <label
-            style={{ display: "block", fontSize: "14px", fontWeight: "bold", marginBottom: "4px" }}
-          >
-            タイトル
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="例：陸奥を改二に改装"
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
-          />
-        </div>
+        <section style={{ flex: "1 1 520px", minWidth: 0 }}>
+          <h3 style={{ marginTop: 0 }}>メモ一覧</h3>
 
-        <div style={{ marginBottom: "12px" }}>
-          <label
-            style={{ display: "block", fontSize: "14px", fontWeight: "bold", marginBottom: "4px" }}
-          >
-            メモ
-          </label>
-          <textarea
-            value={memo}
-            onChange={(e) => setMemo(e.target.value)}
-            placeholder="補足があれば入力"
-            rows={3}
-            style={{
-              width: "100%",
-              padding: "8px",
-              boxSizing: "border-box",
-              resize: "vertical",
-              fontFamily: "inherit",
-            }}
-          />
-        </div>
+          {activeTodos.length === 0 ? (
+            <p style={{ color: "#666" }}>todoはまだありません。</p>
+          ) : (
+            <div style={{ display: "grid", gap: "12px" }}>
+              {activeTodos.map((todo) => {
+                const isEditing = editingId === todo.id;
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          style={{
-            backgroundColor: isLoading ? "#ccc" : "#d4edd4",
-            width: "100%",
-            fontSize: "15px",
-            border: "none",
-            padding: "10px",
-            cursor: isLoading ? "not-allowed" : "pointer",
-            borderRadius: "8px",
-            fontWeight: "bold",
-            color: "#464646",
-          }}
-        >
-          {isLoading ? "保存中..." : "追加する"}
-        </button>
-      </form>
+                return (
+                  <div
+                    key={todo.id}
+                    style={{
+                      display: "flex",
+                      gap: "12px",
+                      alignItems: "flex-start",
+                      border: "1px solid #eee",
+                      borderRadius: "8px",
+                      padding: "14px",
+                      backgroundColor: todo.is_done ? "#f0f2f5" : "#fff",
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>
+                        {todo.date ?? todo.created_at.split("T")[0]}
+                      </p>
 
-      <section>
-        <h3 style={{ marginTop: 0 }}>todo一覧</h3>
-
-        {activeTodos.length === 0 ? (
-          <p style={{ color: "#666" }}>todoはまだありません。</p>
-        ) : (
-          <div style={{ display: "grid", gap: "12px" }}>
-            {activeTodos.map((todo) => {
-              const isEditing = editingId === todo.id;
-
-              return (
-                <div
-                  key={todo.id}
-                  style={{
-                    display: "flex",
-                    gap: "12px",
-                    alignItems: "flex-start",
-                    border: "1px solid #eee",
-                    borderRadius: "8px",
-                    padding: "14px",
-                    backgroundColor: todo.is_done ? "#f0f2f5" : "#fff",
-                  }}
-                >
-                  <div style={{ flex: 1 }}>
-                    <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>
-                      {todo.date ?? todo.created_at.split("T")[0]}
-                    </p>
-
-                    {isEditing ? (
-                      <div style={{ display: "grid", gap: "8px" }}>
-                        <input
-                          type="text"
-                          value={editTitle}
-                          onChange={(e) => setEditTitle(e.target.value)}
-                          style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
-                        />
-                        <textarea
-                          value={editMemo}
-                          onChange={(e) => setEditMemo(e.target.value)}
-                          rows={3}
-                          style={{
-                            width: "100%",
-                            padding: "8px",
-                            boxSizing: "border-box",
-                            resize: "vertical",
-                            fontFamily: "inherit",
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <>
-                        <p
-                          style={{
-                            margin: "0 0 6px",
-                            fontWeight: "bold",
-                            color: todo.is_done ? "#888" : "#333",
-                            textDecoration: todo.is_done ? "line-through" : "none",
-                          }}
-                        >
-                          {todo.title}
-                        </p>
-
-                        {todo.memo && (
+                      {isEditing ? (
+                        <div style={{ display: "grid", gap: "8px" }}>
+                          <input
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
+                          />
+                          <textarea
+                            value={editMemo}
+                            onChange={(e) => setEditMemo(e.target.value)}
+                            rows={3}
+                            style={{
+                              width: "100%",
+                              padding: "8px",
+                              boxSizing: "border-box",
+                              resize: "vertical",
+                              fontFamily: "inherit",
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <>
                           <p
                             style={{
-                              margin: 0,
-                              color: "#555",
-                              fontSize: "0.95em",
-                              lineHeight: "1.5",
+                              margin: "0 0 6px",
+                              fontWeight: "bold",
+                              color: todo.is_done ? "#888" : "#333",
+                              textDecoration: todo.is_done ? "line-through" : "none",
                             }}
                           >
-                            {todo.memo}
+                            {todo.title}
                           </p>
-                        )}
-                      </>
+
+                          {todo.memo && (
+                            <p
+                              style={{
+                                margin: 0,
+                                color: "#555",
+                                fontSize: "0.95em",
+                                lineHeight: "1.5",
+                              }}
+                            >
+                              {todo.memo}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {isEditing ? (
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button
+                          type="button"
+                          onClick={() => saveEditTodo(todo.id)}
+                          style={{
+                            backgroundColor: "#d4edd4",
+                            color: "#464646",
+                            border: "none",
+                            borderRadius: "4px",
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          保存
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelEditTodo}
+                          style={{
+                            backgroundColor: "#ccc",
+                            color: "#333",
+                            border: "none",
+                            borderRadius: "4px",
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          キャンセル
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button
+                          type="button"
+                          onClick={() => toggleTodo(todo)}
+                          style={{
+                            backgroundColor: "#ffe294",
+                            color: "#464646",
+                            border: "none",
+                            borderRadius: "4px",
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          完了
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => startEditTodo(todo)}
+                          style={{
+                            backgroundColor: "#b6ebec",
+                            color: "#464646",
+                            border: "none",
+                            borderRadius: "4px",
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          編集
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteTodo(todo.id)}
+                          style={{
+                            backgroundColor: "#f07f7f",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "4px",
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          削除
+                        </button>
+                      </div>
                     )}
                   </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
-                  {isEditing ? (
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button
-                        type="button"
-                        onClick={() => saveEditTodo(todo.id)}
-                        style={{
-                          backgroundColor: "#d4edd4",
-                          color: "#464646",
-                          border: "none",
-                          borderRadius: "4px",
-                          padding: "8px 12px",
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        保存
-                      </button>
-                      <button
-                        type="button"
-                        onClick={cancelEditTodo}
-                        style={{
-                          backgroundColor: "#ccc",
-                          color: "#333",
-                          border: "none",
-                          borderRadius: "4px",
-                          padding: "8px 12px",
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        キャンセル
-                      </button>
-                    </div>
-                  ) : (
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button
-                        type="button"
-                        onClick={() => toggleTodo(todo)}
-                        style={{
-                          backgroundColor: "#d4edd4",
-                          color: "#464646",
-                          border: "none",
-                          borderRadius: "4px",
-                          padding: "8px 12px",
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        完了
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => startEditTodo(todo)}
-                        style={{
-                          backgroundColor: "#b6ebec",
-                          color: "#464646",
-                          border: "none",
-                          borderRadius: "4px",
-                          padding: "8px 12px",
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        編集
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deleteTodo(todo.id)}
-                        style={{
-                          backgroundColor: "#f07f7f",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: "4px",
-                          padding: "8px 12px",
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        削除
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+        <form
+          onSubmit={handleAddTodo}
+          style={{
+            flex: "0 1 320px",
+            backgroundColor: "#f4f6f9",
+            borderRadius: "8px",
+            padding: "20px",
+          }}
+        >
+          <h3 style={{ marginTop: 0 }}>入力フォーム</h3>
+          <div style={{ marginBottom: "12px" }}>
+            <label
+              style={{ display: "block", fontSize: "14px", fontWeight: "bold", marginBottom: "4px" }}
+            >
+              タイトル
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="例：陸奥を改二に改装"
+              style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
+            />
           </div>
-        )}
-      </section>
+
+          <div style={{ marginBottom: "12px" }}>
+            <label
+              style={{ display: "block", fontSize: "14px", fontWeight: "bold", marginBottom: "4px" }}
+            >
+              メモ
+            </label>
+            <textarea
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              placeholder="補足があれば入力"
+              rows={3}
+              style={{
+                width: "100%",
+                padding: "8px",
+                boxSizing: "border-box",
+                resize: "vertical",
+                fontFamily: "inherit",
+              }}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            style={{
+              backgroundColor: isLoading ? "#ccc" : "#d4edd4",
+              width: "100%",
+              fontSize: "15px",
+              border: "none",
+              padding: "10px",
+              cursor: isLoading ? "not-allowed" : "pointer",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              color: "#464646",
+            }}
+          >
+            {isLoading ? "保存中..." : "追加する"}
+          </button>
+        </form>
+      </div>
 
       <details
         style={{
@@ -475,7 +486,7 @@ function TodoPage() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    戻す
+                    未完了
                   </button>
                   <button
                     type="button"
