@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
+// MUI機能
+import Button from "@mui/material/Button";
+
 type Todo = {
   id: string;
   title: string;
@@ -259,21 +262,26 @@ function TodoPage() {
 
                     {isEditing ? (
                       <div style={{ display: "flex", gap: "8px" }}>
-                        <button
+                        <Button
                           type="button"
+                          variant="contained"
                           onClick={() => saveEditTodo(todo.id)}
-                          style={{
+                          sx={{
                             backgroundColor: "#d4edd4",
                             color: "#464646",
-                            border: "none",
                             borderRadius: "4px",
-                            padding: "8px 12px",
-                            cursor: "pointer",
+                            px: 1.5,
+                            py: 1,
                             whiteSpace: "nowrap",
+                            boxShadow: "none",
+                            "&:hover": {
+                              backgroundColor: "#c2e3c2",
+                              boxShadow: "none",
+                            },
                           }}
                         >
                           保存
-                        </button>
+                        </Button>
                         <button
                           type="button"
                           onClick={cancelEditTodo}
@@ -358,7 +366,12 @@ function TodoPage() {
           <h3 style={{ marginTop: 0 }}>入力フォーム</h3>
           <div style={{ marginBottom: "12px" }}>
             <label
-              style={{ display: "block", fontSize: "14px", fontWeight: "bold", marginBottom: "4px" }}
+              style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "bold",
+                marginBottom: "4px",
+              }}
             >
               タイトル
             </label>
@@ -373,7 +386,12 @@ function TodoPage() {
 
           <div style={{ marginBottom: "12px" }}>
             <label
-              style={{ display: "block", fontSize: "14px", fontWeight: "bold", marginBottom: "4px" }}
+              style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "bold",
+                marginBottom: "4px",
+              }}
             >
               メモ
             </label>
