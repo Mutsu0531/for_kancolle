@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabaseClient";
 
 // MUI機能
 import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
 
 type Todo = {
   id: string;
@@ -375,12 +376,12 @@ function TodoPage() {
             >
               タイトル
             </label>
-            <input
-              type="text"
+            <TextField
+              label=""
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="例：陸奥を改二に改装"
-              style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
+              fullWidth
             />
           </div>
 
@@ -395,18 +396,14 @@ function TodoPage() {
             >
               メモ
             </label>
-            <textarea
+            <TextField
+              label=""
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
               placeholder="補足があれば入力"
+              multiline
               rows={3}
-              style={{
-                width: "100%",
-                padding: "8px",
-                boxSizing: "border-box",
-                resize: "vertical",
-                fontFamily: "inherit",
-              }}
+              fullWidth
             />
           </div>
 
