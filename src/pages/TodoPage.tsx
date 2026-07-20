@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabaseClient";
 // MUI機能
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
+import Box from "@mui/material/Box";
 
 type Todo = {
   id: string;
@@ -158,7 +159,7 @@ function TodoPage() {
   };
 
   return (
-    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
+    <Box sx={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
       <section
         style={{
           maxWidth: "320px",
@@ -174,8 +175,8 @@ function TodoPage() {
         <h2 style={{ margin: 0, fontSize: "2em" }}>todoメモ</h2>
       </section>
 
-      <div
-        style={{
+      <Box
+        sx={{
           display: "grid",
           gridTemplateColumns: "minmax(0, 1fr) 320px",
           gap: "24px",
@@ -189,14 +190,14 @@ function TodoPage() {
           {activeTodos.length === 0 ? (
             <p style={{ color: "#666" }}>todoはまだありません。</p>
           ) : (
-            <div style={{ display: "grid", gap: "12px" }}>
+            <Box sx={{ display: "grid", gap: "12px" }}>
               {activeTodos.map((todo) => {
                 const isEditing = editingId === todo.id;
 
                 return (
-                  <div
+                  <Box
                     key={todo.id}
-                    style={{
+                    sx={{
                       display: "flex",
                       gap: "12px",
                       alignItems: "flex-start",
@@ -206,13 +207,13 @@ function TodoPage() {
                       backgroundColor: todo.is_done ? "#f0f2f5" : "#fff",
                     }}
                   >
-                    <div style={{ flex: 1 }}>
+                    <Box sx={{ flex: 1 }}>
                       <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>
                         {todo.date ?? todo.created_at.split("T")[0]}
                       </p>
 
                       {isEditing ? (
-                        <div style={{ display: "grid", gap: "8px" }}>
+                        <Box sx={{ display: "grid", gap: "8px" }}>
                           <input
                             type="text"
                             value={editTitle}
@@ -231,7 +232,7 @@ function TodoPage() {
                               fontFamily: "inherit",
                             }}
                           />
-                        </div>
+                        </Box>
                       ) : (
                         <>
                           <p
@@ -259,10 +260,10 @@ function TodoPage() {
                           )}
                         </>
                       )}
-                    </div>
+                    </Box>
 
                     {isEditing ? (
-                      <div style={{ display: "flex", gap: "8px" }}>
+                      <Box sx={{ display: "flex", gap: "8px" }}>
                         <Button
                           type="button"
                           variant="contained"
@@ -298,9 +299,9 @@ function TodoPage() {
                         >
                           キャンセル
                         </button>
-                      </div>
+                      </Box>
                     ) : (
-                      <div style={{ display: "flex", gap: "8px" }}>
+                      <Box sx={{ display: "flex", gap: "8px" }}>
                         <button
                           type="button"
                           onClick={() => toggleTodo(todo)}
@@ -346,12 +347,12 @@ function TodoPage() {
                         >
                           削除
                         </button>
-                      </div>
+                      </Box>
                     )}
-                  </div>
+                  </Box>
                 );
               })}
-            </div>
+            </Box>
           )}
         </section>
 
@@ -364,8 +365,8 @@ function TodoPage() {
             padding: "20px",
           }}
         >
-          <h3 style={{ marginTop: 0 }}>入力フォーム</h3>
-          <div style={{ marginBottom: "12px" }}>
+          <h3 style={{ marginTop: 0 }}>メモ入力欄</h3>
+          <Box sx={{ marginBottom: "12px" }}>
             <label
               style={{
                 display: "block",
@@ -383,9 +384,9 @@ function TodoPage() {
               placeholder="例：陸奥を改二に改装"
               fullWidth
             />
-          </div>
+          </Box>
 
-          <div style={{ marginBottom: "12px" }}>
+          <Box sx={{ marginBottom: "12px" }}>
             <label
               style={{
                 display: "block",
@@ -405,7 +406,7 @@ function TodoPage() {
               rows={3}
               fullWidth
             />
-          </div>
+          </Box>
 
           <button
             type="submit"
@@ -425,7 +426,7 @@ function TodoPage() {
             {isLoading ? "保存中..." : "追加する"}
           </button>
         </form>
-      </div>
+      </Box>
 
       <details
         style={{
@@ -451,11 +452,11 @@ function TodoPage() {
         {completedTodos.length === 0 ? (
           <p style={{ margin: "0 0 16px", color: "#666" }}>達成済みのtodoはまだありません。</p>
         ) : (
-          <div style={{ display: "grid", gap: "12px", paddingBottom: "16px" }}>
+          <Box sx={{ display: "grid", gap: "12px", paddingBottom: "16px" }}>
             {completedTodos.map((todo) => (
-              <div
+              <Box
                 key={todo.id}
-                style={{
+                sx={{
                   display: "flex",
                   gap: "12px",
                   alignItems: "flex-start",
@@ -465,7 +466,7 @@ function TodoPage() {
                   backgroundColor: "#fff",
                 }}
               >
-                <div style={{ flex: 1 }}>
+                <Box sx={{ flex: 1 }}>
                   <p style={{ margin: "0 0 5px 0", fontWeight: "bold", color: "#666" }}>
                     {todo.date ?? todo.created_at.split("T")[0]}
                   </p>
@@ -485,9 +486,9 @@ function TodoPage() {
                       {todo.memo}
                     </p>
                   )}
-                </div>
+                </Box>
 
-                <div style={{ display: "flex", gap: "8px" }}>
+                <Box sx={{ display: "flex", gap: "8px" }}>
                   <button
                     type="button"
                     onClick={() => toggleTodo(todo)}
@@ -518,13 +519,13 @@ function TodoPage() {
                   >
                     削除
                   </button>
-                </div>
-              </div>
+                </Box>
+              </Box>
             ))}
-          </div>
+          </Box>
         )}
       </details>
-    </div>
+    </Box>
   );
 }
 
