@@ -5,6 +5,7 @@ import { supabase } from "../lib/supabaseClient";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
 
 type Todo = {
   id: string;
@@ -160,20 +161,19 @@ function TodoPage() {
 
   return (
     <Box sx={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
-      <section
-        style={{
+      <Paper
+        elevation={1}
+        sx={{
           maxWidth: "320px",
           margin: "15px auto 24px",
           padding: "16px 20px",
-          border: "1px solid #eee",
           borderRadius: "8px",
-          backgroundColor: "#fff",
           color: "#444",
           textAlign: "center",
         }}
       >
-        <h2 style={{ margin: 0, fontSize: "2em" }}>todoメモ</h2>
-      </section>
+        <h2 style={{ margin: 0, fontSize: "2em" }}>ToDoメモ</h2>
+      </Paper>
 
       <Box
         sx={{
@@ -184,7 +184,16 @@ function TodoPage() {
           marginBottom: "24px",
         }}
       >
-        <section style={{ flex: "1 1 520px", minWidth: 0 }}>
+        <Paper
+          component="section"
+          elevation={1}
+          sx={{
+            flex: "1 1 520px",
+            minWidth: 0,
+            borderRadius: "8px",
+            padding: "20px",
+          }}
+        >
           <h3 style={{ marginTop: 0 }}>メモ一覧</h3>
 
           {activeTodos.length === 0 ? (
@@ -195,16 +204,16 @@ function TodoPage() {
                 const isEditing = editingId === todo.id;
 
                 return (
-                  <Box
+                  <Paper
                     key={todo.id}
+                    elevation={1}
                     sx={{
                       display: "flex",
                       gap: "12px",
                       alignItems: "flex-start",
-                      border: "1px solid #eee",
                       borderRadius: "8px",
                       padding: "14px",
-                      backgroundColor: todo.is_done ? "#f0f2f5" : "#fff",
+                      backgroundColor: "#fff",
                     }}
                   >
                     <Box sx={{ flex: 1 }}>
@@ -214,23 +223,21 @@ function TodoPage() {
 
                       {isEditing ? (
                         <Box sx={{ display: "grid", gap: "8px" }}>
-                          <input
-                            type="text"
+                          <TextField
                             value={editTitle}
                             onChange={(e) => setEditTitle(e.target.value)}
-                            style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
+                            placeholder="タイトル"
+                            fullWidth
+                            size="small"
                           />
-                          <textarea
+                          <TextField
                             value={editMemo}
                             onChange={(e) => setEditMemo(e.target.value)}
+                            placeholder="メモ"
+                            multiline
                             rows={3}
-                            style={{
-                              width: "100%",
-                              padding: "8px",
-                              boxSizing: "border-box",
-                              resize: "vertical",
-                              fontFamily: "inherit",
-                            }}
+                            fullWidth
+                            size="small"
                           />
                         </Box>
                       ) : (
@@ -349,18 +356,20 @@ function TodoPage() {
                         </button>
                       </Box>
                     )}
-                  </Box>
+                  </Paper>
                 );
               })}
             </Box>
           )}
-        </section>
+        </Paper>
 
-        <form
+        <Paper
+          component="form"
           onSubmit={handleAddTodo}
-          style={{
+          elevation={1}
+          sx={{
             flex: "0 1 320px",
-            backgroundColor: "#f4f6f9",
+            backgroundColor: "#ffffff",
             borderRadius: "8px",
             padding: "20px",
           }}
@@ -425,15 +434,15 @@ function TodoPage() {
           >
             {isLoading ? "保存中..." : "追加する"}
           </button>
-        </form>
+        </Paper>
       </Box>
 
-      <details
-        style={{
+      <Paper
+        component="details"
+        elevation={1}
+        sx={{
           marginTop: "24px",
-          border: "1px solid #eee",
           borderRadius: "8px",
-          backgroundColor: "#f4f6f9",
           padding: "0 16px",
         }}
       >
@@ -444,6 +453,7 @@ function TodoPage() {
             fontWeight: "bold",
             padding: "16px 0",
             color: "#2b2b2b",
+            backgroundColor: "#edf2f7",
           }}
         >
           達成済み ({completedTodos.length}件)
@@ -454,13 +464,13 @@ function TodoPage() {
         ) : (
           <Box sx={{ display: "grid", gap: "12px", paddingBottom: "16px" }}>
             {completedTodos.map((todo) => (
-              <Box
+              <Paper
                 key={todo.id}
+                elevation={1}
                 sx={{
                   display: "flex",
                   gap: "12px",
                   alignItems: "flex-start",
-                  border: "1px solid #eee",
                   borderRadius: "8px",
                   padding: "14px",
                   backgroundColor: "#fff",
@@ -520,11 +530,11 @@ function TodoPage() {
                     削除
                   </button>
                 </Box>
-              </Box>
+              </Paper>
             ))}
           </Box>
         )}
-      </details>
+      </Paper>
     </Box>
   );
 }
